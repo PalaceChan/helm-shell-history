@@ -25,29 +25,49 @@
 
 ;;; Code:
 
+(require 'seq)
 (require 'helm)
 
-(defvar helm-shell-history-candidate-limit 99999
-  "Limit search this many most recent entries in your history.")
+;; Customization
 
-(defvar helm-shell-history-buffer "*Helm Shell History*")
+(defgroup helm-shell-history nil
+  "A helm frontend for searching shell command history"
+  :group 'helm)
 
-(defvar helm-shell-history-file "~/.bash_history")
+(defcustom helm-shell-history-candidate-limit 99999
+  "Limit search this many most recent entries in your history."
+  :type 'integer
+  :group 'helm-shell-history)
 
-(defvar helm-shell-history-time-format "%Y%m%d %T"
+(defcustom helm-shell-history-file "~/.bash_history"
+  "Path to history file."
+  :type 'string
+  :group 'helm-shell-history-file)
+
+(defcustom helm-shell-history-time-format "%Y%m%d %T"
   "Equivalent of HISTTIMEFORMAT.
- If you override this, you need to override helm-shell-history-prefix-tokens")
+ If you override this, you need to override helm-shell-history-prefix-tokens"
+  :type 'string
+  :group 'helm-shell-history-file)
 
-(defvar helm-shell-history-prefix-tokens 3
+(defcustom helm-shell-history-prefix-tokens 3
   "Set this to the number of extra tokens prepended by your history display format.
 For example if a history line looks like:
 
  2653 20200609 18:00:00 echo hello
 
-set it to 3 so as to skip '2653 20200609 18:00:00'")
+set it to 3 so as to skip '2653 20200609 18:00:00'"
+  :type 'integer
+  :group 'helm-shell-history-file)
 
-(defvar helm-shell-history-fuzzy-match nil
-  "Whether to fuzzy match for helm completion.")
+(defcustom helm-shell-history-fuzzy-match nil
+  "Whether to fuzzy match for helm completion."
+  :type 'boolean
+  :group 'helm-shell-history-file)
+
+;; Implementation
+
+(defvar helm-shell-history-buffer "*Helm Shell History*")
 
 (defun helm-shell-history-build-source ()
   (let ((shell-cmd
