@@ -6,6 +6,8 @@
 It works by querying `history` via shell command and presenting completion candidates in recency order.
 The sole completion action is to insert the selected command at the end of the buffer (for optionally editing and easily running the command again in the shell emulator)
 
+![Helm Shell GIF](media/preview.gif?raw=true)
+
 ## Requirements
 
 * Emacs 25.3 or higher
@@ -23,6 +25,7 @@ git clone https://github.com/PalaceChan/helm-shell-history.git ~/.emacs.d/lisp/h
 ```lisp
   (use-package helm-shell-history
     :load-path "~/.emacs.d/lisp/helm-shell-history"
+    :after term
     :config    
     (define-key term-mode-map (kbd "M-r") 'helm-shell-history))
 ```
