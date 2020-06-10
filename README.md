@@ -6,7 +6,7 @@
 It works by querying `history` via shell command and presenting completion candidates in recency order.
 The sole completion action is to insert the selected command at the end of the buffer (for optionally editing and easily running the command again in the shell emulator)
 
-![Helm Shell GIF](media/preview.gif?raw=true)
+![Helm Shell GIF](media/preview2.gif?raw=true)
 
 ## Requirements
 
