@@ -69,12 +69,17 @@ set it to 3 so as to skip '2653 20200609 18:00:00'"
 
 (defvar helm-shell-history-buffer "*Helm Shell History*")
 
+(defvar helm-shell-history-reverse-cmd
+  (if (executable-find "tac")
+      "tac"
+    "awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }'"))
+
 (defun helm-shell-history-build-source ()
   (let ((shell-cmd
 	 (format "HISTFILE=%s; HISTTIMEFORMAT='%s '; history -r $HISTFILE; \
-history | tail -n %s | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }'"
-		 helm-shell-history-file helm-shell-history-time-format helm-shell-history-candidate-limit)))
-    (message "%s" shell-cmd)
+ history | tail -n %s | %s"
+		 helm-shell-history-file helm-shell-history-time-format
+		 helm-shell-history-candidate-limit helm-shell-history-reverse-cmd)))
     (seq-remove #'string-blank-p 
 		(split-string (shell-command-to-string shell-cmd) "\n"))))
 
@@ -84,7 +89,8 @@ history | tail -n %s | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }'"
 	      (nthcdr helm-shell-history-prefix-tokens 
 		      (split-string arg)) " ")))
     (goto-char (point-max))
-    ;(skip-chars-backward "\n[:space:]")
+    (skip-chars-backward "\n[:space:]")
+    (forward-char)
     (insert (s-prepend " " cmd))))
 
 ;;;###autoload
