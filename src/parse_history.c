@@ -26,8 +26,6 @@ typedef struct Record
     size_t length;
 } Record;
 
-int debug = 0;
-
 size_t parse_record(Record* r, char* buf, size_t j) {
     assert(r->length == 0);
 
