@@ -29,9 +29,9 @@ fi
 diff -q $GOLD_OUTPUT $TEST_OUTPUT &> /dev/null
 if [ $? -ne 0 ] ; then
     echo "[Test $TEST_NAME]: FAIL"
-    exit 1
 else
     echo "[Test $TEST_NAME]: PASS"
-    exit 0
 fi
+
+exit 0
 

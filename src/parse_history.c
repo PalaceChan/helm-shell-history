@@ -35,18 +35,14 @@ size_t parse_record(Record* r, char* buf, size_t j) {
     size_t digits = 0;
     size_t start_j = j;
     while (!done) {
-	//if (debug > 0) printf("DEBUG_, j=%lu c=%c\n", j, buf[j]);
 	if (buf[j] >= '0' && buf[j] <= '9') {
 	    digits++;
-	    //if (debug > 0) printf("DEBUG_, digits=%lu\n", digits);
 	}
 	else if (buf[j] == '#' && (digits == TS_DIGITS)) {
 	    if (j == 0) {
 		done = 1;
-		//if (debug > 0) printf("DEBUG_, done=%d\n", done);
 	    }
 	    else if (j >= TS_DIGITS + 2 && buf[j-1] == '\n') {
-		//if (debug > 0) printf("DEBUG_, check edge case\n");
 		size_t digits2 = 0;
 		for (int i = 1; i <= TS_DIGITS; i++) {
 		    if (buf[j - 1 - i] >= '0' && buf[j - 1 - i] <= '9') {
@@ -55,7 +51,6 @@ size_t parse_record(Record* r, char* buf, size_t j) {
 		}
 		if (!(digits2 == TS_DIGITS && buf[j - 1 - TS_DIGITS - 1] == '#')) {
 		    done = 1;
-		    //if (debug > 0) printf("DEBUG_, done by edge case\n");
 		}
 	    }
 	}
@@ -64,7 +59,6 @@ size_t parse_record(Record* r, char* buf, size_t j) {
 	}
 
 	if (!done) {
-	    //if (debug > 0) printf("DEBUG_, absorbed '%c' as part of cmd\n", buf[j]);
 	    j--;
 	    r->length++;
 	}
@@ -83,6 +77,8 @@ void dump_records(Record* records, char* buf, size_t nr, char* time_fmt) {
     struct tm tm;
     memset(&tm, 0, sizeof(struct tm));
     char time_buf[256];
+
+    setbuf(stdout, NULL);
     
     for (size_t i = 0; i < nr; ++i) {
 	Record* r = &records[i];
@@ -90,7 +86,8 @@ void dump_records(Record* records, char* buf, size_t nr, char* time_fmt) {
 	strptime(&buf[r->start + 1], "%s", &tm);
 	size_t time_len = strftime(time_buf, sizeof(time_buf), time_fmt, &tm);
 	time_buf[time_len] = ' ';
-	
+
+	printf("%lu ", i);
 	write(1, &time_buf, time_len+1);
 	write(1, &buf[r->start + TS_DIGITS + 2], r->length - TS_DIGITS - 3);
 	write(1, "\0", 1);

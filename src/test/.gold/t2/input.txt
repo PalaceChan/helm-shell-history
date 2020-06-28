@@ -1,0 +1,11 @@
+#1593367752
+make clean
+#1593367752
+make
+#1593367760
+make test
+#1593369263
+(echo "this is a pretty long command running in a subshell of its own" && echo "this is another pretty long command running in a subshell of its own" && echo "this is yet another pretty long command still running in a subshell of its own" && echo "this is a final command, still quite long, running in his own subshell")
+#1593369282
+sleep 1 &&
+sleep 1 && echo that was a multiline command
