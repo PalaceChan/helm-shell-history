@@ -1,6 +1,6 @@
 ;;; helm-shell-history.el --- Shell command history helm interface -*- lexical-binding: t -*-
 
-;; Version: 0.0.0
+;; Version: 0.1.0
 ;; Author: Palace Chan
 ;; URL: https://github.com/PalaceChan/helm-shell-history
 ;; Keywords: convenience, helm, shell, history
@@ -65,6 +65,11 @@ set it to 3 so as to skip '2653 20200609 18:00:00'"
   :type 'boolean
   :group 'helm-shell-history-file)
 
+(defcustom helm-shell-history-fast-parser ""
+  "Point to the location of the compiled fast parser"
+  :type 'string
+  :group 'helm-shell-history-file)
+
 ;; Implementation
 
 (defvar helm-shell-history-buffer "*Helm Shell History*")
@@ -74,14 +79,21 @@ set it to 3 so as to skip '2653 20200609 18:00:00'"
       "tac"
     "awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }'"))
 
-(defun helm-shell-history-build-source ()
-  (let ((shell-cmd
-	 (format "HISTFILE=%s; HISTTIMEFORMAT='%s '; history -r $HISTFILE; \
+(defvar helm-shell-history-shell-cmd-and-sep
+  (if (file-executable-p helm-shell-history-fast-parser)
+      (cons (format "%s %s '%s' %s" helm-shell-history-fast-parser helm-shell-history-file
+		    helm-shell-history-time-format helm-shell-history-candidate-limit) "\0")
+    (cons
+     (format "HISTFILE=%s; HISTTIMEFORMAT='%s '; history -r $HISTFILE; \
  history | tail -n %s | %s"
-		 helm-shell-history-file helm-shell-history-time-format
-		 helm-shell-history-candidate-limit helm-shell-history-reverse-cmd)))
+	     helm-shell-history-file helm-shell-history-time-format
+	     helm-shell-history-candidate-limit helm-shell-history-reverse-cmd) "\n")))
+
+(defun helm-shell-history-build-source ()
+  (let ((shell-cmd (car helm-shell-history-shell-cmd-and-sep))
+	(shell-cmd-sep (cdr helm-shell-history-shell-cmd-and-sep)))
     (seq-remove #'string-blank-p 
-		(split-string (shell-command-to-string shell-cmd) "\n"))))
+		(split-string (shell-command-to-string shell-cmd) shell-cmd-sep))))
 
 (defun helm-shell-history-command-action (arg)
   "Insert command portion of ARG in current buffer"  
@@ -99,6 +111,7 @@ set it to 3 so as to skip '2653 20200609 18:00:00'"
   (interactive)
   (helm :sources (helm-build-sync-source "Shell history"
 		   :candidates 'helm-shell-history-build-source
+		   :multiline t
 		   :fuzzy-match helm-shell-history-fuzzy-match
 		   :action 'helm-shell-history-command-action)
 	:buffer helm-shell-history-buffer
