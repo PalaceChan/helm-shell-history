@@ -79,7 +79,7 @@ set it to 3 so as to skip '2653 20200609 18:00:00'"
       "tac"
     "awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }'"))
 
-(defvar helm-shell-history-shell-cmd-and-sep
+(defun get-helm-shell-history-shell-cmd-and-sep ()
   (if (file-executable-p helm-shell-history-fast-parser)
       (cons (format "%s %s '%s' %s" helm-shell-history-fast-parser helm-shell-history-file
 		    helm-shell-history-time-format helm-shell-history-candidate-limit) "\0")
@@ -90,8 +90,9 @@ set it to 3 so as to skip '2653 20200609 18:00:00'"
 	     helm-shell-history-candidate-limit helm-shell-history-reverse-cmd) "\n")))
 
 (defun helm-shell-history-build-source ()
-  (let ((shell-cmd (car helm-shell-history-shell-cmd-and-sep))
-	(shell-cmd-sep (cdr helm-shell-history-shell-cmd-and-sep)))
+  (let* ((helm-shell-history-shell-cmd-and-sep (get-helm-shell-history-shell-cmd-and-sep))
+	 (shell-cmd (car helm-shell-history-shell-cmd-and-sep))
+	 (shell-cmd-sep (cdr helm-shell-history-shell-cmd-and-sep)))
     (seq-remove #'string-blank-p 
 		(split-string (shell-command-to-string shell-cmd) shell-cmd-sep))))
 
