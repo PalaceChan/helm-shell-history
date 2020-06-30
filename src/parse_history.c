@@ -26,12 +26,11 @@ typedef struct Record
     size_t length;
 } Record;
 
-size_t parse_record(Record* r, char* buf, size_t j) {
+size_t parse_record(Record* r, char* buf, long j) {
     assert(r->length == 0);
 
     int done = 0;
     size_t digits = 0;
-    size_t start_j = j;
     while (!done) {
 	if (buf[j] >= '0' && buf[j] <= '9') {
 	    digits++;
@@ -66,8 +65,6 @@ size_t parse_record(Record* r, char* buf, size_t j) {
     assert(r->length >= TS_DIGITS + 2);
 
     r->start = j;
-    r->length = start_j - j - 1; //no newline
-
     return r->length;
 }
 
@@ -87,7 +84,7 @@ void dump_records(Record* records, char* buf, size_t nr, char* time_fmt) {
 
 	printf("%lu ", i);
 	write(1, &time_buf, time_len+1);
-	write(1, &buf[r->start + TS_DIGITS + 2], r->length - TS_DIGITS - 3);
+	write(1, &buf[r->start + TS_DIGITS + 2], r->length - TS_DIGITS - 2);
 	write(1, "\0", 1);
     }
 }
@@ -123,15 +120,15 @@ int main(int argc, char *argv[])
 	die("malloc");
     }
     
+    long j = sb.st_size - 1;
     size_t nr = 0;
-    size_t j = sb.st_size - 1;
     Record* r = &records[nr];
 
     assert(buf[j] == '\n');
-    while (nr < cand_limit && j > 1) {
-	size_t len = parse_record(r, buf, j);
+    while (nr < cand_limit && j > 0) {
+	long len = parse_record(r, buf, j);
 	assert(len <= j);
-	j -= len;
+	j -= (len+1);
 	
 	nr++;
 	r = &records[nr];
