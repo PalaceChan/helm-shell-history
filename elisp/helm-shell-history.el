@@ -1,6 +1,6 @@
 ;;; helm-shell-history.el --- Shell command history helm interface -*- lexical-binding: t -*-
 
-;; Version: 0.1.0
+;; Version: 0.2.0
 ;; Author: Palace Chan
 ;; URL: https://github.com/PalaceChan/helm-shell-history
 ;; Keywords: convenience, helm, shell, history
@@ -96,6 +96,13 @@ set it to 3 so as to skip '2653 20200609 18:00:00'"
     (seq-remove #'string-blank-p 
 		(split-string (shell-command-to-string shell-cmd) shell-cmd-sep))))
 
+(defun helm-shell-history-term-insert (arg)
+  (insert (s-prepend " " arg)))
+
+(defun helm-shell-history-vterm-insert (arg)
+  (let ((inhibit-read-only t))
+    (vterm-send-string arg t)))
+
 (defun helm-shell-history-command-action (arg)
   "Insert command portion of ARG in current buffer"  
   (let ((cmd (string-join
@@ -104,7 +111,9 @@ set it to 3 so as to skip '2653 20200609 18:00:00'"
     (goto-char (point-max))
     (skip-chars-backward "\n[:space:]")
     (forward-char)
-    (insert (s-prepend " " cmd))))
+    (if (equal major-mode 'vterm-mode)
+	(helm-shell-history-vterm-insert cmd)
+      (helm-shell-history-term-insert cmd))))
 
 ;;;###autoload
 (defun helm-shell-history ()
