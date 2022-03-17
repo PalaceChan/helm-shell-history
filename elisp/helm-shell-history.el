@@ -93,7 +93,7 @@ set it to 3 so as to skip '2653 20200609 18:00:00'"
   (let* ((helm-shell-history-shell-cmd-and-sep (get-helm-shell-history-shell-cmd-and-sep))
 	 (shell-cmd (car helm-shell-history-shell-cmd-and-sep))
 	 (shell-cmd-sep (cdr helm-shell-history-shell-cmd-and-sep)))
-    (seq-remove #'string-blank-p 
+    (seq-remove #'string-blank-p
 		(split-string (shell-command-to-string shell-cmd) shell-cmd-sep))))
 
 (defun helm-shell-history-term-insert (arg)
@@ -104,16 +104,19 @@ set it to 3 so as to skip '2653 20200609 18:00:00'"
     (vterm-send-string arg t)))
 
 (defun helm-shell-history-command-action (arg)
-  "Insert command portion of ARG in current buffer"  
+  "Insert command portion of ARG in current buffer"
   (let ((cmd (string-join
-	      (nthcdr helm-shell-history-prefix-tokens 
+	      (nthcdr helm-shell-history-prefix-tokens
 		      (split-string arg)) " ")))
-    (goto-char (point-max))
-    (skip-chars-backward "\n[:space:]")
-    (forward-char)
-    (if (equal major-mode 'vterm-mode)
-	(helm-shell-history-vterm-insert cmd)
-      (helm-shell-history-term-insert cmd))))
+    (if (or (equal major-mode 'vterm-mode) (equal major-mode 'term-mode))
+	(progn
+	  (goto-char (point-max))
+	  (skip-chars-backward "\n[:space:]")
+	  (forward-char)
+	  (if (equal major-mode 'vterm-mode)
+	      (helm-shell-history-vterm-insert cmd)
+	    (helm-shell-history-term-insert cmd)))
+      (insert cmd))))
 
 ;;;###autoload
 (defun helm-shell-history ()
