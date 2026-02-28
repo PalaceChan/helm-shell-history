@@ -1,0 +1,30 @@
+#1592683118
+sudo lvs
+#1592683122
+df -h .
+#1592683152
+sudo lvremove /dev/vg0/root_snapshot_20200502 
+#1592683194
+sudo lvcreate -L18GB -s -n root_snapshot_20200620 /dev/mapper/vg0-lv_root 
+#1592683196
+sudo lvs
+#1592683202
+hist | mgrep pacman -S | tail 
+#1592683204
+hist | mgrep pacman S | tail 
+#1592683234
+sudo pacman -Syu --ignore=ttf-inconsolata
+#1592683752
+reboot
+#1592683853
+sudo lvs
+#1592757705
+ping www.google.com
+#1592757715
+hist | mgrep ping | tail 
+#1592757720
+ping -c2 www.google.com
+#1593290481
+pwd
+#1593290482
+ls
