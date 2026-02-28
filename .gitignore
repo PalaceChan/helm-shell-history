@@ -1,0 +1,6 @@
+# Build artifacts
+src/parse_history
+*.o
+
+# Test output
+src/test/output_*.txt
