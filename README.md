@@ -76,3 +76,9 @@ Limit the number of candidates to this number of most recent shell commands.
 #### `helm-shell-history-fast-parser` (Default "")
 
 Point to the compiled binary for the fast parsing to unlock much faster parsing
+
+## Development
+
+- C formatting is handled via `clang-format` (see `.clang-format`): `clang-format -i src/*.c`
+- Run C parser tests: `make -C src test`
+- Optional sanitizers: `make -C src asan`

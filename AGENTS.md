@@ -7,7 +7,7 @@
 - Debug a single test: `src/test/run.sh ./src/parse_history t0 '%Y%m%d %T' 9999`
 - Clean build artifacts: `make -C src clean`
 - “Lint” (stricter warnings): `make -C src CFLAGS='-Wall -Wextra -O2 -g'`
-- Format C sources: `clang-format -i src/*.c`
+- Format C sources: `clang-format -i src/*.c` (picks up repo `.clang-format`)
 - Optional elisp sanity: `emacs -Q --batch -L elisp -f batch-byte-compile elisp/helm-shell-history.el`
 
 ## Code style (match existing code)
@@ -16,4 +16,4 @@
 - Use `defcustom`/`defgroup` for user-facing options and include docstrings; keep customization vars in the same `:group`.
 - C (`src/`): keep includes minimal/ordered; prefer `size_t` for sizes and `const` for read-only pointers.
 - Error handling: always check syscalls/allocations; use existing `die()`/`die_errno()`/`usage()` helpers and fail loudly.
-- Formatting: run `clang-format` on modified C files; avoid drive-by reformatting unrelated files.
+- Formatting: run `clang-format` (configured via `.clang-format`) on modified C files; avoid drive-by reformatting unrelated files.
