@@ -26,6 +26,7 @@
 ;;; Code:
 
 (require 'seq)
+(require 'subr-x)
 (require 'helm)
 
 ;; Customization
@@ -42,13 +43,13 @@
 (defcustom helm-shell-history-file "~/.bash_history"
   "Path to history file."
   :type 'string
-  :group 'helm-shell-history-file)
+  :group 'helm-shell-history)
 
 (defcustom helm-shell-history-time-format "%Y%m%d %T"
   "Equivalent of HISTTIMEFORMAT.
  If you override this, you need to override helm-shell-history-prefix-tokens"
   :type 'string
-  :group 'helm-shell-history-file)
+  :group 'helm-shell-history)
 
 (defcustom helm-shell-history-prefix-tokens 3
   "Set this to the number of extra tokens prepended by your history display format.
@@ -58,17 +59,17 @@ For example if a history line looks like:
 
 set it to 3 so as to skip '2653 20200609 18:00:00'"
   :type 'integer
-  :group 'helm-shell-history-file)
+  :group 'helm-shell-history)
 
 (defcustom helm-shell-history-fuzzy-match nil
   "Whether to fuzzy match for helm completion."
   :type 'boolean
-  :group 'helm-shell-history-file)
+  :group 'helm-shell-history)
 
 (defcustom helm-shell-history-fast-parser ""
   "Point to the location of the compiled fast parser"
   :type 'string
-  :group 'helm-shell-history-file)
+  :group 'helm-shell-history)
 
 ;; Implementation
 
@@ -79,25 +80,39 @@ set it to 3 so as to skip '2653 20200609 18:00:00'"
       "tac"
     "awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }'"))
 
-(defun get-helm-shell-history-shell-cmd-and-sep ()
-  (if (file-executable-p helm-shell-history-fast-parser)
-      (cons (format "%s %s '%s' %s" helm-shell-history-fast-parser helm-shell-history-file
-		    helm-shell-history-time-format helm-shell-history-candidate-limit) "\0")
-    (cons
-     (format "HISTFILE=%s; HISTTIMEFORMAT='%s '; history -r $HISTFILE; \
- history | tail -n %s | %s"
-	     helm-shell-history-file helm-shell-history-time-format
-	     helm-shell-history-candidate-limit helm-shell-history-reverse-cmd) "\n")))
+(defun helm-shell-history--shell-cmd-and-sep ()
+  "Return a cons of (shell-command . separator)."
+  (let* ((hist-file (expand-file-name helm-shell-history-file))
+         (time-format helm-shell-history-time-format)
+         (cand-limit (number-to-string helm-shell-history-candidate-limit))
+         (parser (and (stringp helm-shell-history-fast-parser)
+                      (not (string-empty-p helm-shell-history-fast-parser))
+                      (expand-file-name helm-shell-history-fast-parser))))
+    (if (and parser (file-regular-p parser) (file-executable-p parser))
+        (cons (format "%s %s %s %s"
+                      (shell-quote-argument parser)
+                      (shell-quote-argument hist-file)
+                      (shell-quote-argument time-format)
+                      (shell-quote-argument cand-limit))
+              "\0")
+      (cons
+       (format
+        "HISTFILE=%s; HISTTIMEFORMAT=%s; history -r \"$HISTFILE\"; history | tail -n %s | %s"
+        (shell-quote-argument hist-file)
+        (shell-quote-argument (concat time-format " "))
+        cand-limit
+        helm-shell-history-reverse-cmd)
+       "\n"))))
 
 (defun helm-shell-history-build-source ()
-  (let* ((helm-shell-history-shell-cmd-and-sep (get-helm-shell-history-shell-cmd-and-sep))
+  (let* ((helm-shell-history-shell-cmd-and-sep (helm-shell-history--shell-cmd-and-sep))
 	 (shell-cmd (car helm-shell-history-shell-cmd-and-sep))
 	 (shell-cmd-sep (cdr helm-shell-history-shell-cmd-and-sep)))
     (seq-remove #'string-blank-p
 		(split-string (shell-command-to-string shell-cmd) shell-cmd-sep))))
 
 (defun helm-shell-history-term-insert (arg)
-  (insert (s-prepend " " arg)))
+  (insert " " arg))
 
 (defun helm-shell-history-vterm-insert (arg)
   (let ((inhibit-read-only t))
@@ -108,12 +123,12 @@ set it to 3 so as to skip '2653 20200609 18:00:00'"
   (let ((cmd (string-join
 	      (nthcdr helm-shell-history-prefix-tokens
 		      (split-string arg)) " ")))
-    (if (or (equal major-mode 'vterm-mode) (equal major-mode 'term-mode))
+    (if (or (eq major-mode 'vterm-mode) (eq major-mode 'term-mode))
 	(progn
 	  (goto-char (point-max))
 	  (skip-chars-backward "\n[:space:]")
 	  (forward-char)
-	  (if (equal major-mode 'vterm-mode)
+	  (if (eq major-mode 'vterm-mode)
 	      (helm-shell-history-vterm-insert cmd)
 	    (helm-shell-history-term-insert cmd)))
       (insert cmd))))
